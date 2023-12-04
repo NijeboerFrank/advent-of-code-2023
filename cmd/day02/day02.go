@@ -55,6 +55,24 @@ func get_game_value(game Game) int {
 	return game.Number
 }
 
+func get_game_value_part_2(game Game) int {
+	largest_blue := 0
+	largest_red := 0
+	largest_green := 0
+	for _, set := range game.Sets {
+		for _, grab := range set.Grabs {
+			if grab.Blue > largest_blue {
+				largest_blue = grab.Blue
+			} else if grab.Red > largest_red {
+				largest_red = grab.Red
+			} else if grab.Green > largest_green {
+				largest_green = grab.Green
+			}
+		}
+	}
+	return largest_blue * largest_red * largest_green
+}
+
 func process(filename string) int {
 	f, err := os.Open(filename)
 	if err != nil {
@@ -83,7 +101,37 @@ func process(filename string) int {
 	return ret
 }
 
+func process_part2(filename string) int {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	parser, err := participle.Build[Game]()
+	if err != nil {
+		log.Print(err)
+		log.Fatal("Could not build parser")
+	}
+
+	scanner := bufio.NewScanner(f)
+	games := []Game{}
+
+	for scanner.Scan() {
+		games = append(games, process_line(scanner.Text(), parser))
+	}
+
+	ret := 0
+	for _, game := range games {
+		plus := get_game_value_part_2(game)
+		ret += plus
+	}
+	return ret
+}
+
 func main() {
 	answer := process("input2.txt")
 	fmt.Printf("The answer is: %d\n", answer)
+	answer2 := process_part2("input2.txt")
+	fmt.Printf("The answer for part 2 is: %d\n", answer2)
 }
